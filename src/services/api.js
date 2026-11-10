@@ -1,6 +1,7 @@
-// Uses relative /api which is proxied by Vite in dev to http://127.0.0.1:8000/api,
-// or direct VITE_API_URL if specified.
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Base URL configured from environment (e.g. Render production or dev proxy)
+// Trims any trailing slashes to guarantee clean endpoint resolution
+const rawBaseUrl = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 async function handleResponse(response) {
   if (!response.ok) {
