@@ -35,6 +35,16 @@ body {
   font-weight: 700 !important;
 }
 
+@media (max-width: 991.98px) {
+  .mobile-nav-expanded {
+    background: rgba(13, 110, 253, 0.98);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  }
+}
+
 /* Hero Section */
 .hero-section {
   background: linear-gradient(135deg, #0d6efd 0%, #1e40af 100%);
