@@ -3,7 +3,7 @@ import { api } from '../services/api';
 
 export default function DoctorModule({
   currentUser,
-  onQuickLogin,
+  onOpenAuth,
   onNotify
 }) {
   const [appointments, setAppointments] = useState([]);
@@ -91,22 +91,16 @@ export default function DoctorModule({
           <div className="bg-info-subtle text-info rounded-circle p-3 d-inline-flex mx-auto mb-3" style={{ width: 64, height: 64 }}>
             <i className="bi bi-person-badge fs-2 m-auto"></i>
           </div>
-          <h3 className="fw-bold mb-2">Doctor Portal Authentication Required</h3>
+          <h3 className="fw-bold mb-2">Doctor Portal Access</h3>
           <p className="text-muted small mb-4">
-            You are currently not logged in as a doctor. Use the pre-seeded doctor credentials to enter the Doctor Module.
+            Please sign in with your registered doctor credentials to manage consultation requests and patient appointments.
           </p>
-          <div className="d-flex flex-column flex-sm-row justify-content-center gap-2">
+          <div>
             <button
-              className="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
-              onClick={() => onQuickLogin('doctor.sharma@lifeline.com', 'password123', 'doctor')}
+              className="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm"
+              onClick={() => onOpenAuth('login')}
             >
-              <i className="bi bi-heart-pulse-fill me-1"></i> Login as Dr. Rajesh Sharma (Cardiologist)
-            </button>
-            <button
-              className="btn btn-outline-secondary rounded-pill px-3"
-              onClick={() => onQuickLogin('doctor.patel@lifeline.com', 'password123', 'doctor')}
-            >
-              Login as Dr. Priya Patel
+              <i className="bi bi-box-arrow-in-right me-2"></i> Doctor Sign In
             </button>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { api } from '../services/api';
 
 export default function AdminModule({
   currentUser,
-  onQuickLogin,
+  onOpenAuth,
   onNotify
 }) {
   const [stats, setStats] = useState(null);
@@ -159,16 +159,16 @@ export default function AdminModule({
           <div className="bg-dark text-warning rounded-circle p-3 d-inline-flex mx-auto mb-3" style={{ width: 64, height: 64 }}>
             <i className="bi bi-shield-lock-fill fs-2 m-auto"></i>
           </div>
-          <h3 className="fw-bold mb-2">Hospital Admin Access Required</h3>
+          <h3 className="fw-bold mb-2">Hospital Administration Access</h3>
           <p className="text-muted small mb-4">
-            Only authenticated system administrators can access doctor registries, user directories, and central booking analytics.
+            Only authorized system administrators can manage medical personnel registries, patients, and hospital appointments.
           </p>
           <div>
             <button
-              className="btn btn-dark rounded-pill px-4 fw-bold shadow-sm"
-              onClick={() => onQuickLogin('admin@lifeline.com', 'admin123', 'admin')}
+              className="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow-sm"
+              onClick={() => onOpenAuth('login')}
             >
-              <i className="bi bi-shield-check text-warning me-1"></i> Login with 1-Click Admin Test Account
+              <i className="bi bi-shield-lock me-2"></i> Administrator Sign In
             </button>
           </div>
         </div>

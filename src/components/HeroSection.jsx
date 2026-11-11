@@ -3,8 +3,7 @@ import React from 'react';
 export default function HeroSection({
   stats,
   currentUser,
-  onNavigate,
-  onQuickLogin
+  onNavigate
 }) {
   return (
     <div className="hero-section text-white position-relative overflow-hidden mb-5">

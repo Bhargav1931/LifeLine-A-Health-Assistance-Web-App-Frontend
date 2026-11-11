@@ -5,8 +5,7 @@ export default function Navbar({
   setActiveTab,
   currentUser,
   onOpenAuth,
-  onLogout,
-  onOpenTestModal
+  onLogout
 }) {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary-gradient sticky-top shadow-sm py-2">
@@ -89,45 +88,29 @@ export default function Navbar({
             </li>
           </ul>
 
-          {/* User Auth & Testing Switcher */}
+          {/* User Auth Section */}
           <div className="d-flex align-items-center gap-2 mt-2 mt-lg-0">
-            {/* Quick Test Switcher Button */}
-            <button
-              className="btn btn-warning btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
-              onClick={onOpenTestModal}
-              title="Switch testing accounts instantly for Viva demonstration"
-            >
-              <i className="bi bi-lightning-charge-fill"></i>
-              <span>Test Roles</span>
-            </button>
-
             {currentUser ? (
               <div className="d-flex align-items-center gap-2">
-                <div className="dropdown">
-                  <button
-                    className="btn btn-outline-light btn-sm d-flex align-items-center gap-2 rounded-pill px-3 py-1 dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                  >
-                    <span className="badge rounded-circle bg-light text-primary p-2">
-                      <i className={`bi ${
-                        currentUser.role === 'admin'
-                          ? 'bi-shield-shaded'
-                          : currentUser.role === 'doctor'
-                          ? 'bi-hospital'
-                          : 'bi-person-fill'
-                      }`}></i>
-                    </span>
-                    <span className="text-truncate fw-semibold" style={{ maxWidth: '140px' }}>
-                      {currentUser.name}
-                    </span>
-                    <span className="badge bg-warning text-dark text-uppercase fs-8">
-                      {currentUser.role}
-                    </span>
-                  </button>
+                <div className="d-flex align-items-center gap-2 bg-white bg-opacity-10 border border-white-25 rounded-pill px-3 py-1 text-white">
+                  <span className="badge rounded-circle bg-white text-primary p-2">
+                    <i className={`bi ${
+                      currentUser.role === 'admin'
+                        ? 'bi-shield-shaded'
+                        : currentUser.role === 'doctor'
+                        ? 'bi-hospital'
+                        : 'bi-person-fill'
+                    }`}></i>
+                  </span>
+                  <span className="text-truncate fw-semibold" style={{ maxWidth: '140px' }}>
+                    {currentUser.name}
+                  </span>
+                  <span className="badge bg-warning text-dark text-uppercase fs-8">
+                    {currentUser.role}
+                  </span>
                 </div>
                 <button
-                  className="btn btn-outline-danger btn-sm text-white border-white-50 rounded-pill px-3"
+                  className="btn btn-outline-light btn-sm rounded-pill px-3"
                   onClick={onLogout}
                   title="Logout"
                 >
@@ -135,12 +118,20 @@ export default function Navbar({
                 </button>
               </div>
             ) : (
-              <button
-                className="btn btn-light btn-sm fw-bold text-primary rounded-pill px-4 shadow-sm"
-                onClick={onOpenAuth}
-              >
-                <i className="bi bi-person-fill me-1"></i> Login / Register
-              </button>
+              <div className="d-flex align-items-center gap-2">
+                <button
+                  className="btn btn-light btn-sm fw-bold text-primary rounded-pill px-3 shadow-sm"
+                  onClick={() => onOpenAuth('login')}
+                >
+                  <i className="bi bi-box-arrow-in-right me-1"></i> Sign In
+                </button>
+                <button
+                  className="btn btn-warning btn-sm fw-bold text-dark rounded-pill px-3 shadow-sm"
+                  onClick={() => onOpenAuth('register')}
+                >
+                  <i className="bi bi-person-plus-fill me-1"></i> Register
+                </button>
+              </div>
             )}
           </div>
         </div>

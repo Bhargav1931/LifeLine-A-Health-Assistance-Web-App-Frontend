@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import TestAccountBanner from './components/TestAccountBanner';
 import AuthModal from './components/AuthModal';
 import HeroSection from './components/HeroSection';
 import UserModule from './components/UserModule';
@@ -12,7 +11,6 @@ import { api } from './services/api';
 export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // 'home', 'user', 'doctor', 'admin', 'health'
   const [currentUser, setCurrentUser] = useState(() => {
-    // Default to the test patient user so viva presentation starts seamlessly!
     const saved = localStorage.getItem('lifeline_user');
     if (saved) {
       try {
@@ -21,19 +19,11 @@ export default function App() {
         return null;
       }
     }
-    // Pre-populate with patient test user
-    return {
-      success: true,
-      role: 'user',
-      user_id: 1,
-      name: 'John Doe',
-      email: 'patient@lifeline.com',
-      token: 'user-token-1'
-    };
+    return null;
   });
 
-  const [testUsers, setTestUsers] = useState([]);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authInitialTab, setAuthInitialTab] = useState('login'); // 'login' or 'register'
   const [stats, setStats] = useState(null);
   const [notification, setNotification] = useState(null);
 
@@ -45,12 +35,13 @@ export default function App() {
     }, 4500);
   };
 
-  // Load test users and admin stats on mount
-  useEffect(() => {
-    api.getTestUsers()
-      .then(users => setTestUsers(users))
-      .catch(err => console.error('Failed to load test users:', err));
+  const handleOpenAuth = (tab = 'login') => {
+    setAuthInitialTab(tab);
+    setIsAuthOpen(true);
+  };
 
+  // Load admin stats on mount
+  useEffect(() => {
     api.getAdminStats()
       .then(data => setStats(data))
       .catch(err => console.error('Failed to load stats:', err));
@@ -78,36 +69,18 @@ export default function App() {
     setActiveTab('home');
   };
 
-  const handleQuickLogin = async (email, password, expectedRole) => {
-    try {
-      const response = await api.login({ email, password });
-      handleLoginSuccess(response);
-    } catch (err) {
-      notify('danger', `Quick login failed: ${err.message}`);
-    }
-  };
-
   return (
     <div className="d-flex flex-column min-vh-100">
-      {/* 1. Top Viva / Testing Users Quick Switcher Banner */}
-      <TestAccountBanner
-        testUsers={testUsers}
-        currentUser={currentUser}
-        onQuickLogin={handleQuickLogin}
-        onOpenTestModal={() => setIsAuthOpen(true)}
-      />
-
-      {/* 2. Main Navigation Bar */}
+      {/* 1. Main Navigation Bar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         currentUser={currentUser}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={handleOpenAuth}
         onLogout={handleLogout}
-        onOpenTestModal={() => setIsAuthOpen(true)}
       />
 
-      {/* 3. Floating Notification Toast */}
+      {/* 2. Floating Notification Toast */}
       {notification && (
         <div className="notification-container">
           <div
@@ -135,7 +108,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 4. Main Body Content Based on Active Tab */}
+      {/* 3. Main Body Content Based on Active Tab */}
       <main className="flex-grow-1">
         {/* Home / Overview */}
         {activeTab === 'home' && (
@@ -144,7 +117,6 @@ export default function App() {
               stats={stats}
               currentUser={currentUser}
               onNavigate={(tab) => setActiveTab(tab)}
-              onQuickLogin={handleQuickLogin}
             />
             {/* Embedded User Module snippet for quick booking */}
             <div className="container mb-5">
@@ -157,7 +129,7 @@ export default function App() {
               </div>
               <UserModule
                 currentUser={currentUser}
-                onOpenAuth={() => setIsAuthOpen(true)}
+                onOpenAuth={() => handleOpenAuth('login')}
                 onNotify={notify}
               />
             </div>
@@ -169,7 +141,7 @@ export default function App() {
           <div className="py-4">
             <UserModule
               currentUser={currentUser}
-              onOpenAuth={() => setIsAuthOpen(true)}
+              onOpenAuth={() => handleOpenAuth('login')}
               onNotify={notify}
             />
           </div>
@@ -180,7 +152,7 @@ export default function App() {
           <div className="py-4">
             <DoctorModule
               currentUser={currentUser}
-              onQuickLogin={handleQuickLogin}
+              onOpenAuth={() => handleOpenAuth('login')}
               onNotify={notify}
             />
           </div>
@@ -191,7 +163,7 @@ export default function App() {
           <div className="py-4">
             <AdminModule
               currentUser={currentUser}
-              onQuickLogin={handleQuickLogin}
+              onOpenAuth={() => handleOpenAuth('login')}
               onNotify={notify}
             />
           </div>
@@ -205,15 +177,15 @@ export default function App() {
         )}
       </main>
 
-      {/* 5. Authentication & Test Users Modal */}
+      {/* 4. Standard Authentication Modal (Login / Register) */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={handleLoginSuccess}
-        testUsers={testUsers}
+        initialTab={authInitialTab}
       />
 
-      {/* 6. Footer */}
+      {/* 5. Footer */}
       <footer className="bg-dark text-white py-4 mt-auto border-top">
         <div className="container">
           <div className="row g-4 align-items-center">
@@ -223,20 +195,19 @@ export default function App() {
                 <h5 className="fw-bold mb-0">LifeLine – Health Assistance Web App</h5>
               </div>
               <p className="text-white-50 small mb-0">
-                Final Year Engineering Project • FastAPI + PostgreSQL Backend • React + Bootstrap Frontend.
-                Digitized hospital appointment scheduling with conflict prevention and 24/7 emergency first aid.
+                A digitized health assistance platform bridging patients with doctors, offering real-time appointment scheduling, conflict-free bookings, and emergency first-aid assistance.
               </p>
             </div>
             <div className="col-md-6 text-md-end">
               <div className="d-flex flex-wrap justify-content-md-end gap-2 mb-2">
-                <span className="badge bg-secondary">PostgreSQL 15</span>
-                <span className="badge bg-primary">FastAPI (Python)</span>
-                <span className="badge bg-info text-dark">SQLAlchemy 2.0</span>
-                <span className="badge bg-warning text-dark">Pydantic</span>
-                <span className="badge bg-success">React 19 + Vite</span>
+                <span className="badge bg-secondary">PostgreSQL</span>
+                <span className="badge bg-primary">FastAPI</span>
+                <span className="badge bg-info text-dark">SQLAlchemy</span>
+                <span className="badge bg-success">React + Vite</span>
+                <span className="badge bg-warning text-dark">Bootstrap 5</span>
               </div>
               <div className="text-white-50 small">
-                Viva Ready: Unique constraint on <code>(doctor_id, date, time)</code> avoids double bookings.
+                © {new Date().getFullYear()} LifeLine Health System. All rights reserved.
               </div>
             </div>
           </div>
