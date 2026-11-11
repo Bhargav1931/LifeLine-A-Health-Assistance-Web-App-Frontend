@@ -23,6 +23,8 @@ export default function Navbar({
     }
   };
 
+  const role = currentUser?.role; // 'user', 'doctor', 'admin', or undefined
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary-gradient sticky-top shadow-sm py-2">
       <div className="container">
@@ -46,9 +48,9 @@ export default function Navbar({
             <div className="d-flex align-items-center gap-1 text-white bg-white bg-opacity-10 px-2 py-1 rounded-pill small">
               <span className="badge rounded-circle bg-white text-primary p-1">
                 <i className={`bi ${
-                  currentUser.role === 'admin'
+                  role === 'admin'
                     ? 'bi-shield-shaded'
-                    : currentUser.role === 'doctor'
+                    : role === 'doctor'
                     ? 'bi-hospital'
                     : 'bi-person-fill'
                 }`}></i>
@@ -80,8 +82,9 @@ export default function Navbar({
 
         {/* Collapsible Content */}
         <div className={`collapse navbar-collapse ${isNavOpen ? 'show mobile-nav-expanded' : ''}`} id="lifelineNav">
-          {/* Navigation Items */}
+          {/* Navigation Items (Role-Based Visibility) */}
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1 pt-2 pt-lg-0">
+            {/* 1. Home - Available to all */}
             <li className="nav-item">
               <button
                 className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
@@ -92,36 +95,56 @@ export default function Navbar({
                 <i className="bi bi-house-door me-2 me-lg-1"></i> Home
               </button>
             </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
-                  activeTab === 'user' ? 'active-nav-item' : 'text-white-75'
-                }`}
-                onClick={() => handleNavClick('user')}
-              >
-                <i className="bi bi-calendar2-check me-2 me-lg-1"></i> Book Appointment
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
-                  activeTab === 'doctor' ? 'active-nav-item' : 'text-white-75'
-                }`}
-                onClick={() => handleNavClick('doctor')}
-              >
-                <i className="bi bi-person-badge me-2 me-lg-1"></i> Doctor Portal
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
-                  activeTab === 'admin' ? 'active-nav-item' : 'text-white-75'
-                }`}
-                onClick={() => handleNavClick('admin')}
-              >
-                <i className="bi bi-shield-check me-2 me-lg-1"></i> Admin
-              </button>
-            </li>
+
+            {/* 2. Patient / User Appointments - Visible only to Patients or Guests */}
+            {(!role || role === 'user') && (
+              <li className="nav-item">
+                <button
+                  className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
+                    activeTab === 'user' ? 'active-nav-item' : 'text-white-75'
+                  }`}
+                  onClick={() => handleNavClick('user')}
+                >
+                  <i className="bi bi-calendar2-check me-2 me-lg-1"></i> Book Appointment
+                </button>
+              </li>
+            )}
+
+            {/* 3. Doctor Portal - Visible to Doctors, or Guests (leading to login) */}
+            {(!role || role === 'doctor') && (
+              <li className="nav-item">
+                <button
+                  className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
+                    activeTab === 'doctor' ? 'active-nav-item' : 'text-white-75'
+                  }`}
+                  onClick={() => handleNavClick('doctor')}
+                >
+                  <i className="bi bi-person-badge me-2 me-lg-1"></i> Doctor Portal
+                  {role === 'doctor' && (
+                    <span className="badge bg-warning text-dark ms-1 fs-9">Active</span>
+                  )}
+                </button>
+              </li>
+            )}
+
+            {/* 4. Admin - Visible to Admin, or Guests (leading to login) */}
+            {(!role || role === 'admin') && (
+              <li className="nav-item">
+                <button
+                  className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
+                    activeTab === 'admin' ? 'active-nav-item' : 'text-white-75'
+                  }`}
+                  onClick={() => handleNavClick('admin')}
+                >
+                  <i className="bi bi-shield-check me-2 me-lg-1"></i> Admin Dashboard
+                  {role === 'admin' && (
+                    <span className="badge bg-warning text-dark ms-1 fs-9">Admin</span>
+                  )}
+                </button>
+              </li>
+            )}
+
+            {/* 5. Health Info & SOS - Available to all */}
             <li className="nav-item">
               <button
                 className={`nav-link btn btn-link text-decoration-none px-3 py-2 rounded-pill w-100 text-start text-lg-center ${
@@ -134,7 +157,7 @@ export default function Navbar({
             </li>
           </ul>
 
-          {/* User Auth Section (Desktop and Mobile Dropdown) */}
+          {/* User Auth Section */}
           <div className="pt-3 pt-lg-0 border-top border-white-25 border-lg-0 mt-2 mt-lg-0">
             {currentUser ? (
               <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
@@ -143,9 +166,9 @@ export default function Navbar({
                   <div className="d-flex align-items-center gap-2">
                     <span className="badge rounded-circle bg-white text-primary p-2">
                       <i className={`bi ${
-                        currentUser.role === 'admin'
+                        role === 'admin'
                           ? 'bi-shield-shaded'
-                          : currentUser.role === 'doctor'
+                          : role === 'doctor'
                           ? 'bi-hospital'
                           : 'bi-person-fill'
                       }`}></i>
@@ -155,7 +178,7 @@ export default function Navbar({
                     </span>
                   </div>
                   <span className="badge bg-warning text-dark text-uppercase fs-8 px-2 py-1">
-                    {currentUser.role}
+                    {role}
                   </span>
                 </div>
 

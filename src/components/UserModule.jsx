@@ -72,7 +72,7 @@ export default function UserModule({
   };
 
   const loadUserAppointments = async () => {
-    if (!currentUser?.user_id) return;
+    if (!currentUser?.user_id || currentUser?.role !== 'user') return;
     setLoadingAppts(true);
     try {
       const data = await api.getUserAppointments(currentUser.user_id);
@@ -95,8 +95,12 @@ export default function UserModule({
 
   const handleOpenBookingModal = (doctor) => {
     if (!currentUser) {
-      onNotify('warning', 'Please log in as a Patient to book an appointment.');
+      onNotify('warning', 'Please sign in to book an appointment.');
       onOpenAuth();
+      return;
+    }
+    if (currentUser.role !== 'user') {
+      onNotify('danger', `Cannot book appointment: You are currently signed in as ${currentUser.role.toUpperCase()}. Please sign in with a Patient account.`);
       return;
     }
     setSelectedDoctor(doctor);

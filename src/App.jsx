@@ -6,6 +6,7 @@ import UserModule from './components/UserModule';
 import DoctorModule from './components/DoctorModule';
 import AdminModule from './components/AdminModule';
 import HealthInfoModule from './components/HealthInfoModule';
+import AccessDenied from './components/AccessDenied';
 import { api } from './services/api';
 
 export default function App() {
@@ -50,9 +51,9 @@ export default function App() {
   const handleLoginSuccess = (userData) => {
     setCurrentUser(userData);
     localStorage.setItem('lifeline_user', JSON.stringify(userData));
-    notify('success', `Welcome, ${userData.name}! Logged in as ${userData.role.toUpperCase()}.`);
+    notify('success', `Welcome back, ${userData.name}! Logged in as ${userData.role.toUpperCase()}.`);
 
-    // Smart navigate to the corresponding module
+    // Role-based automatic redirect to user's dedicated dashboard
     if (userData.role === 'doctor') {
       setActiveTab('doctor');
     } else if (userData.role === 'admin') {
@@ -69,9 +70,16 @@ export default function App() {
     setActiveTab('home');
   };
 
+  const handleSwitchAccount = () => {
+    handleLogout();
+    handleOpenAuth('login');
+  };
+
+  const role = currentUser?.role;
+
   return (
     <div className="d-flex flex-column min-vh-100">
-      {/* 1. Main Navigation Bar */}
+      {/* 1. Main Navigation Bar with Role-Based Tabs */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -108,68 +116,172 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. Main Body Content Based on Active Tab */}
+      {/* 3. Main Body Content with Role-Based Access Guards */}
       <main className="flex-grow-1">
-        {/* Home / Overview */}
+        {/* TAB 1: HOME PAGE */}
         {activeTab === 'home' && (
           <>
             <HeroSection
               stats={stats}
               currentUser={currentUser}
-              onNavigate={(tab) => setActiveTab(tab)}
+              onNavigate={(tab) => {
+                // Prevent doctor from jumping into user booking via hero button
+                if (tab === 'user' && role === 'doctor') {
+                  setActiveTab('doctor');
+                } else if (tab === 'user' && role === 'admin') {
+                  setActiveTab('admin');
+                } else {
+                  setActiveTab(tab);
+                }
+              }}
             />
-            {/* Embedded User Module snippet for quick booking */}
-            <div className="container mb-5">
-              <div className="text-center mb-4">
-                <span className="badge bg-primary text-white rounded-pill px-3 py-1 mb-2">
-                  Featured Doctors & Booking
-                </span>
-                <h3 className="fw-bold">Consult Top Medical Specialists</h3>
-                <p className="text-muted small">Choose your preferred doctor, select slot, and get confirmed instantly</p>
+
+            {/* Role-tailored section below Hero */}
+            {role === 'doctor' ? (
+              <div className="container mb-5">
+                <div className="card border-0 shadow-sm rounded-4 p-5 bg-gradient-light border-start border-primary border-5 text-center">
+                  <div className="d-inline-flex bg-primary text-white rounded-circle p-3 mx-auto mb-3" style={{ width: 64, height: 64 }}>
+                    <i className="bi bi-hospital fs-3 m-auto"></i>
+                  </div>
+                  <h3 className="fw-bold mb-2">Welcome to Doctor Portal, {currentUser.name}!</h3>
+                  <p className="text-muted small mb-4 max-w-600 mx-auto">
+                    You have dedicated access to review patient appointment requests, check symptoms, accept or reject consultation slots, and update your working hours.
+                  </p>
+                  <div>
+                    <button
+                      className="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm"
+                      onClick={() => setActiveTab('doctor')}
+                    >
+                      <i className="bi bi-calendar2-check-fill me-2"></i> Open Doctor Portal
+                    </button>
+                  </div>
+                </div>
               </div>
+            ) : role === 'admin' ? (
+              <div className="container mb-5">
+                <div className="card border-0 shadow-sm rounded-4 p-5 bg-gradient-light border-start border-dark border-5 text-center">
+                  <div className="d-inline-flex bg-dark text-warning rounded-circle p-3 mx-auto mb-3" style={{ width: 64, height: 64 }}>
+                    <i className="bi bi-shield-check fs-3 m-auto"></i>
+                  </div>
+                  <h3 className="fw-bold mb-2">Hospital Administrator Portal</h3>
+                  <p className="text-muted small mb-4 max-w-600 mx-auto">
+                    Manage specialist doctor registries, audit registered patients, monitor system bookings, and publish health articles.
+                  </p>
+                  <div>
+                    <button
+                      className="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow-sm"
+                      onClick={() => setActiveTab('admin')}
+                    >
+                      <i className="bi bi-grid-1x2-fill me-2"></i> Open Admin Control Center
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Patients and Guests see the Doctor Directory & Booking */
+              <div className="container mb-5">
+                <div className="text-center mb-4">
+                  <span className="badge bg-primary text-white rounded-pill px-3 py-1 mb-2">
+                    Verified Specialists
+                  </span>
+                  <h3 className="fw-bold">Consult Top Medical Specialists</h3>
+                  <p className="text-muted small">Choose your preferred doctor, select slot, and get confirmed instantly</p>
+                </div>
+                <UserModule
+                  currentUser={currentUser}
+                  onOpenAuth={() => handleOpenAuth('login')}
+                  onNotify={notify}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* TAB 2: USER MODULE (Book Appointment / Patient Portal) */}
+        {activeTab === 'user' && (
+          <div className="py-4">
+            {role === 'doctor' ? (
+              <AccessDenied
+                title="Doctor Role Restriction"
+                message="Doctors cannot book appointments as patients. Please use your Doctor Portal to manage your consultation requests and schedule."
+                requiredRole="patient"
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onSwitchAccount={handleSwitchAccount}
+              />
+            ) : role === 'admin' ? (
+              <AccessDenied
+                title="Administrator Notice"
+                message="Administrators manage hospital bookings through the Admin Dashboard. Patient booking is restricted to patient accounts."
+                requiredRole="patient"
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onSwitchAccount={handleSwitchAccount}
+              />
+            ) : (
               <UserModule
                 currentUser={currentUser}
                 onOpenAuth={() => handleOpenAuth('login')}
                 onNotify={notify}
               />
-            </div>
-          </>
-        )}
-
-        {/* User Module (Patient Portal) */}
-        {activeTab === 'user' && (
-          <div className="py-4">
-            <UserModule
-              currentUser={currentUser}
-              onOpenAuth={() => handleOpenAuth('login')}
-              onNotify={notify}
-            />
+            )}
           </div>
         )}
 
-        {/* Doctor Module (Doctor Schedule & Patient Reviews) */}
+        {/* TAB 3: DOCTOR MODULE (Doctor Portal) */}
         {activeTab === 'doctor' && (
           <div className="py-4">
-            <DoctorModule
-              currentUser={currentUser}
-              onOpenAuth={() => handleOpenAuth('login')}
-              onNotify={notify}
-            />
+            {role === 'user' ? (
+              <AccessDenied
+                title="Doctor Portal Restricted"
+                message="Access to the Doctor Portal is reserved for verified medical specialists. You are currently logged in with a Patient account."
+                requiredRole="doctor"
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onSwitchAccount={handleSwitchAccount}
+              />
+            ) : role === 'admin' ? (
+              <AccessDenied
+                title="Administrator Access Notice"
+                message="Please manage doctors, staff, and hospital schedules directly through the Admin Dashboard."
+                requiredRole="doctor"
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onSwitchAccount={handleSwitchAccount}
+              />
+            ) : (
+              <DoctorModule
+                currentUser={currentUser}
+                onOpenAuth={() => handleOpenAuth('login')}
+                onNotify={notify}
+              />
+            )}
           </div>
         )}
 
-        {/* Admin Module (Hospital Management & Stats) */}
+        {/* TAB 4: ADMIN MODULE (Admin Dashboard) */}
         {activeTab === 'admin' && (
           <div className="py-4">
-            <AdminModule
-              currentUser={currentUser}
-              onOpenAuth={() => handleOpenAuth('login')}
-              onNotify={notify}
-            />
+            {role === 'user' || role === 'doctor' ? (
+              <AccessDenied
+                title="Administrator Privileges Required"
+                message={`Access to the hospital administration center is restricted. Your current account role (${role.toUpperCase()}) does not have administrative permissions.`}
+                requiredRole="admin"
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onSwitchAccount={handleSwitchAccount}
+              />
+            ) : (
+              <AdminModule
+                currentUser={currentUser}
+                onOpenAuth={() => handleOpenAuth('login')}
+                onNotify={notify}
+              />
+            )}
           </div>
         )}
 
-        {/* Health Info Module (First-Aid, BMI, Emergency SOS) */}
+        {/* TAB 5: HEALTH INFO & EMERGENCY HELPLINE (Open to all) */}
         {activeTab === 'health' && (
           <div className="py-4">
             <HealthInfoModule onNotify={notify} />
